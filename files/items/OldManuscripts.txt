@@ -1,0 +1,2 @@
+If you ever forget a spell just use"help" and a list of available spells will appear. If you need details on how to use a specific spell, use 'man' followed 
+by spell command. For example, if you were interested in details on how to use the "mv" spell you would use: man mv 

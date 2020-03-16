@@ -1,2 +1,2 @@
 # Terminus_project
-IOS : Project about MIT Terminus
+Project for the IOS course.
