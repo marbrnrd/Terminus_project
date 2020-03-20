@@ -14,31 +14,21 @@ int cd_home(void)
     return -1;
 }
  
-int main(int argc, char **argv)
-{ 
+int main cd(int argc, char **argv)
+{
     switch (argc) {
     case 1:
-	return cd_home();
+        cd_home();
         break;
     case 2:
         if (!strcmp(argv[1], "~"))
-            return cd_home();
-        else{
-           printf("chdir(%s) = %d\n", argv[1], chdir(argv[1]));
-	   return chdir(argv[1]);
-	   // char cwd[PATH_MAX];
-	   // if(getcwd(cwd, sizeof(cwd)) != NULL){ 
-	//	    printf("Current working dir: %s\n", cwd);
-	//	    system(strcat(cwd,
-	  //  }
-	    //else{
-	//	    perror("getcwd() error");
-	  //  }
-	}
+            cd_home();
+        else
+            printf("chdir(%s) = %d\n", argv[1], chdir(argv[1]));
         break;
     default:
         fprintf(stderr, "usage: cd <directory>\n");
         return EXIT_FAILURE;
     }
-    //return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

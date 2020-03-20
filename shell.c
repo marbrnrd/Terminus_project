@@ -11,22 +11,12 @@
 #define MAXLINE 200
 #define MAXARGS 20
 
-#define LS 5863588
-#define CD 5863276
-#define MKDIR 210720772860
-#define PWD 193502992
-#define CAT 193488125     
-#define RM 5863780
-#define PWD 193502992
-
-
 char* root;
 char locations[256];
 char home[256];
+char cmdpath[256];  
 
-int cat(char* file);
-int pwd();
-int rm (int argc,char **argv);
+int cd (int argc,char **argv);
 
 static int execute(int argc, char *argv[]);
 
@@ -80,38 +70,26 @@ int read_args(int* argcp, char* args[], int max, int* eofp)
    return 1;
 }
 
-///////////////////////////////////////
-unsigned long hashcode(const char *str){
-    unsigned long hash = 5381;  
-    int c;
-
-    while ((c = *str++)){
-        hash = ((hash << 5) + hash) + c;
-    }
-    return hash;
-}
-
 //////////////////////////////////////
-void location_desc(){
-  char buf[256];
-  char locpath[256];
+void location_desc(char* location){
+  char buf[4096];
+  char locpath[4096];
   char* prev;
-  char* cwd = getcwd(buf,sizeof(buf));
- 
-  //retrieve the last element of the current directory path 
-  char* token = strtok(cwd, "/");          
-  while(token != NULL){
-    prev = token; 
-    token =  strtok(NULL, "/");
+
+  char* dir = getcwd(buf, sizeof(buf));
+  char* curr = strtok(dir,"/");
+  while(curr != (char*)NULL){
+     prev = curr;
+     curr = strtok(NULL,"/");
   }
-          
+  
   //form the " .../Terminus_project/files/locations/location.txt" string and execute cat
-  strcat(prev,".txt");
+  strcat(prev,".txt");  
   strcpy(locpath,locations);
 
   char* argv[MAXARGS] = {};
-  argv[0]="cat";
-  argv[1]=strcat(locpath,prev);  
+  argv[0] = "cat";
+  argv[1] = strcat(locpath, prev);  
   execute(2,argv);
 
 }
@@ -120,56 +98,28 @@ int execute(int argc, char *argv[])
 {
   pid_t pid;
   int status;
+  char buf[256]; 
 
-  
-  if(strcmp(argv[0],"cd")==0){           //cd command case 
-    if(argc < 2){
-      chdir(home);
-      location_desc(); 
-    }
-    else if(chdir(argv[1]) != 0){  
-      fprintf(stderr, "No location with that name, try again\n");
-    }
-    else{
-      location_desc();
-    }
+  if(strcmp(argv[0],"cd")==0){           //cd command case
+     char* dir = getcwd(buf, sizeof(buf));
+     char* first = "You are at the first room\n";
+
+     if(strcmp(home, dir) == 0){
+         write(0, first, strlen(first));
+     }
+     else if(cd(argc, argv) == EXIT_SUCCESS){
+        location_desc(argv[1]); 
+     }
   }
-  else if((pid = fork()) < 0){                  /*try to fork a child process*/
+  else if((pid = fork()) < 0){                /*try to fork a child process*/
      printf("Error: fork failed\n");
      exit(1);
   }
-  else if(pid == 0){                            /*Child process*/	
-     
-     char cmdpath[256];
-     strcpy(cmdpath,root);
-          
-     //determine path of the command executable
-     switch(hashcode(argv[0]))
-     {
-       case CAT:   
-         strcat(cmdpath,"/commands/cat");
-         break;
-	
-       case LS:    
-         if(execvp(argv[0], argv) < 0){
-           perror("The following error ocurred:");
-           exit(1);
-         }
-         break;
-
-       case RM:                 
-         strcat(cmdpath,"/commands/rm");
-         break;
-
-       case PWD:
-         strcat(cmdpath,"/commands/pwd");
-         break;
-     } 
-     
+  else if(pid == 0){                          /*Child process*/	
      //exec the command
-     if(execv(cmdpath, argv) < 0){
-       perror("The following error ocurred:");
-       exit(1);
+     if(execvp(*argv, argv) < 0){
+        perror("The following error ocurred:");
+        exit(1);
      }
   }
   else{                                       /*parent process*/  
@@ -193,20 +143,32 @@ int main ()
    system("bash creation_script.sh");
    
    //set current directory to the root of the game directory tree
-   system("cat files/intro.txt");
+   //system("cat files/intro.txt");
    root = getcwd(buf,sizeof(buf));  
-  
-   //store path to home dir. 
+   setenv("ROOT",root,1);  
+
+   //set up PATH environment variable 
+   strcpy(cmdpath,root);
+   strcat(cmdpath,"/commands"); 
+   setenv("PATH", cmdpath, 1);  
+
+   //set up HOME environment variable
    strcpy(home,root); 
    strcat(home,"/Home");
- 
+   setenv("HOME", home, 1);  
+
    //store path to the dir. with the location texts   
    strcpy(locations,root); 
    strcat(locations,"/files/locations/");
 
+   char* intro[MAXARGS]= {};   
+   intro[0] = "cat";
+   intro[1] = "files/intro.txt";
+   execute(2, intro);
+  
    //Move to Home(Game starting location)
    chdir("Home");
-
+    
    while (1) {
       write(0,Prompt, strlen(Prompt));
 

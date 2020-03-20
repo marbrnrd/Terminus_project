@@ -10,7 +10,7 @@ void cd_home(void)
         printf("chdir(%s) = %d\n", home, chdir(home));
 }
  
-int main(int argc, char **argv)
+int cd(int argc, char **argv)
 {
     switch (argc) {
     case 1:
