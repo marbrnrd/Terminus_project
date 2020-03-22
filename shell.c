@@ -16,7 +16,7 @@ char locations[256];
 char home[256];
 char cmdpath[256];  
 
-int cd (int argc,char **argv);
+int cd(int argc,char **argv);
 
 static int execute(int argc, char *argv[]);
 
@@ -104,8 +104,8 @@ int execute(int argc, char *argv[])
      char* dir = getcwd(buf, sizeof(buf));
      char* first = "You are at the first room\n";
 
-     if(strcmp(home, dir) == 0){
-         write(0, first, strlen(first));
+     if((strcmp(home, dir) == 0) && (strcmp(argv[1],"..") == 0)){
+        write(0, first, strlen(first));
      }
      else if(cd(argc, argv) == EXIT_SUCCESS){
         location_desc(argv[1]); 
