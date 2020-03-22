@@ -2,19 +2,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <limits.h>
  
-int cd_home(void)
+void cd_home(void)
 {
     const char *const home = getenv("HOME");
-    if (home){
+    if (home)
         printf("chdir(%s) = %d\n", home, chdir(home));
-	return chdir(home);
-    }
-    return -1;
 }
  
-int main cd(int argc, char **argv)
+int cd(int argc, char **argv)
 {
     switch (argc) {
     case 1:

@@ -1,0 +1,2 @@
+If you ever want to go directly Home, just type 'cd ~' or just plain old `cd' and you'll come back Home. Getting back might be more difficult though.
+
