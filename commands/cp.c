@@ -1,33 +1,28 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
 int main(int argc , char* argv[]){
    
-   int fd1, fd2, r;
-   struct stat stt;   
-   ssize_t psize = getpagesize();
-   char buf[psize];
-
-
-   if((fd1 = open(argv[1], O_RDONLY)) < 0){
-	perror("The following error ocurred:");
+   FILE *f1;
+   FILE *f2;
+   int c;
+ 
+   if((f1 = fopen(argv[1],"r")) == NULL){
+      perror("The following error ocurred");
+      exit(1);
    }
-   if(stat(argv[2],&stt)==0){
-       if((fd2 = open(argv[2], O_WRONLY)) < 0){
-          while((r = read(fd1,buf,psize)) > 0){
-             write(fd2,buf,psize);
-          }
-       }
+   if((f2 = fopen(argv[2],"w")) == NULL){
+       perror("The following error ocurred");
+       exit(1); 
    }
-   else{
-      if((fd2 = open(argv[2], O_CREAT|O_WRONLY))<0){
-          while((r = read(fd1,buf,psize)) > 0){
-             write(fd2,buf,psize); 
-          }
-      }
+   while((c = getc(f1)) != EOF){
+      putc(c, f2);
    }
-
+   fclose(f1);
+   fclose(f2);
+  
    return 0;
 }
