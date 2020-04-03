@@ -3,7 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
- 
+
+#include "cd.h"
+
 int cd_home(void)
 {
     const char *const home = getenv("HOME");
@@ -14,7 +16,7 @@ int cd_home(void)
     return -1;
 }
  
-int main cd(int argc, char **argv)
+int cd_main (int argc, char **argv)
 {
     switch (argc) {
     case 1:
