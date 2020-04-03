@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "cd/cd.h"
+
 #define error(a) {perror(a); exit(1);};
 #define MAXLINE 200
 #define MAXARGS 20
