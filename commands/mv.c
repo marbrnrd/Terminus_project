@@ -12,7 +12,7 @@ void main (int argc, char **argv){
         printf("The %s is moved to %s\n", argv[1], argv[2]);
      }
      else{
-        printf("Error\n");
+        perror("The following error ocurred: ");
      }
   }
 }

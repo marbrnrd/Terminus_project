@@ -4,6 +4,8 @@ mkdir -p Home/WesternForest/SpellCastingAcademy/{Lessons,PracticeRoom/Box}
 
 mkdir -p Home/NorthernMeadow/EasternMountains/Cave/{Staircase,DarkCorridor/DankRoom/{SmallHole,Tunnel/StoneChamber/Portal/TownSquare/{Marketplace,Library/BackRoom,RockyPath/Farm,ArtisanShop,BrokenBridge/Clearing/OminousLookingPath/CaveOfDisgruntledTrolls/Slide/KernelFiles/{Paradise,MoreKernelFiles}}}}
 
+find Home -type f -exec chmod 777 {} \;
+
 #Home
 cp files/items/WelcomeLetter.txt Home/
 
@@ -70,3 +72,8 @@ cp files/items/Certificate.txt files/items/InstructionsKernel.txt Home/NorthernM
 #MoreKernelFiles
 cp files/items/M_txt.txt files/items/L_txt.txt files/items/U_txt.txt files/items/V_txt.txt files/items/R_txt.txt files/items/S_txt.txt files/items/W_txt.txt files/items/T_txt.txt files/items/Q_txt.txt Home/NorthernMeadow/EasternMountains/Cave/DarkCorridor/DankRoom/Tunnel/StoneChamber/Portal/TownSquare/BrokenBridge/Clearing/OminousLookingPath/CaveOfDisgruntledTrolls/Slide/KernelFiles/MoreKernelFiles/
 
+#Set file permissions to read only (it goes recursively through the contents of the Home directory and all of its subdirectories)
+find Home -type f -exec chmod 660 {} \; 
+
+#Set directory permissions to read and execute (allows listing of the contents of the directory as well as entering it)
+find Home -type d -exec chmod 770 {} \; 

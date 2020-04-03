@@ -12,9 +12,12 @@
 #define MAXARGS 20
 
 char* root;
+char* originalpath;
 char locations[256];
 char home[256];
 char cmdpath[256];  
+
+struct sigaction old_action;
 
 int cd(int argc,char **argv);
 
@@ -57,7 +60,7 @@ int read_args(int* argcp, char* args[], int max, int* eofp)
               break;
    }
    // Analyzing the line
-   cmdp= cmd;
+   cmdp = cmd;
    for (i=0; i<max; i++) {  /* to show every argument */
       if ((args[i]= strtok(cmdp, " \t\n")) == (char*)NULL) break;
       cmdp= NULL;
@@ -69,7 +72,22 @@ int read_args(int* argcp, char* args[], int max, int* eofp)
    *argcp= i;
    return 1;
 }
+//////////////////////////////////////
+void removeDirectoryTree(){
+   char rmcommand[256];
+   strcpy(rmcommand,"rm -R ");
+   strcat(rmcommand,home);
+   system(rmcommand);
+}
 
+//////////////////////////////////////
+void sigint_handler(int sig){
+    printf("\nDeleting game world :(\n");
+    sigaction(SIGINT, &old_action, NULL);
+    setenv("PATH", originalpath, 1);
+    removeDirectoryTree();
+    kill(0, SIGINT);  
+}
 //////////////////////////////////////
 void location_desc(char* location){
   char buf[4096];
@@ -103,8 +121,8 @@ int execute(int argc, char *argv[])
   if(strcmp(argv[0],"cd")==0){           //cd command case
      char* dir = getcwd(buf, sizeof(buf));
      char* first = "You are at the first room\n";
-
-     if((strcmp(home, dir) == 0) && (strcmp(argv[1],"..") == 0)){
+  
+     if((strcmp(home, dir) == 0) && (argc > 1) && (strcmp(argv[1],"..") == 0)){
         write(0, first, strlen(first));
      }
      else if(cd(argc, argv) == EXIT_SUCCESS){
@@ -118,7 +136,7 @@ int execute(int argc, char *argv[])
   else if(pid == 0){                          /*Child process*/	
      //exec the command
      if(execvp(*argv, argv) < 0){
-        perror("The following error ocurred:");
+        fprintf(stderr, "The following error ocurred: command %s not found\n", argv[0]);
         exit(1);
      }
   }
@@ -138,12 +156,19 @@ int main ()
    int argc;
    char *args[MAXARGS];
    char buf[256];
+   struct sigaction action;
+   
+   originalpath = getenv("PATH");
+
+   //set SIGINT signal handler to our handler(so it deletes the directory tree upon exiting the game)
+   memset(&action, 0, sizeof(action));
+   action.sa_handler = &sigint_handler;
+   sigaction(SIGINT, &action, &old_action);
 
    //Create directory tree used in the game
    system("bash creation_script.sh");
    
    //set current directory to the root of the game directory tree
-   //system("cat files/intro.txt");
    root = getcwd(buf,sizeof(buf));  
    setenv("ROOT",root,1);  
 
@@ -161,6 +186,7 @@ int main ()
    strcpy(locations,root); 
    strcat(locations,"/files/locations/");
 
+   //display intro message
    char* intro[MAXARGS]= {};   
    intro[0] = "cat";
    intro[1] = "files/intro.txt";

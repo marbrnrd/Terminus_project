@@ -43,7 +43,7 @@ void match_pattern(char* argv[])
    char line[256];
  
    if((fd = open(argv[2],O_RDONLY)) < 0){
-       perror("The followirng error happened: ");
+       perror("The following error happened: ");
        exit(1);
    }
    while((r = read(fd, &buf, sizeof(char))) != 0){

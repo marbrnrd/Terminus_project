@@ -1,10 +1,7 @@
 #include <stdio.h> 
 #include <unistd.h>
 
-int rm (int argc,char **argv) {
-  
-  printf("aaaaaaaaa\n");
-  fflush(stdout);
+int main(int argc,char **argv) {
 
   if(argc!=2){
     printf("Please, introduce the correct parameters\n");
