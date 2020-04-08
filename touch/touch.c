@@ -3,13 +3,13 @@
 
 #define DATA_SIZE 1000
 
-int main()
+int main(int argc, char* argv[])
 {
     char data[DATA_SIZE];
 
     FILE * fPtr;
 
-    fPtr = fopen("argv[1]", "w");
+    fPtr = fopen( argv[1], "w");
 
 
     if(fPtr == NULL)

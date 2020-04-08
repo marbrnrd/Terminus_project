@@ -1,3 +1,5 @@
+#Makefile
+
 all: main
 
 main: main.o cd.o

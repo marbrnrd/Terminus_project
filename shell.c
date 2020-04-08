@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "cd/cd.h"
 
@@ -120,7 +121,7 @@ int execute(int argc, char *argv[])
   int status;
   char buf[256]; 
 
-  if(strcmp(argv[0],"cd")==0){           //cd command case
+  if(strcmp(argv[0],"cd")==0 || strcmp(argv[1],"~") == 0 ){           //cd command case
      char* dir = getcwd(buf, sizeof(buf));
      char* first = "You are at the first room\n";
   
@@ -129,6 +130,10 @@ int execute(int argc, char *argv[])
      }
      else if(cd(argc, argv) == EXIT_SUCCESS){
         location_desc(argv[1]); 
+     }
+     else{
+	     char* error = "No such directory\n";
+	     write(0,error,strlen(error));
      }
   }
   else if((pid = fork()) < 0){                /*try to fork a child process*/
