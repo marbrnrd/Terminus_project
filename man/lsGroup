@@ -1,9 +1,9 @@
 
-The old man's voice echoes in your head as if from a great distance: 
+The old man's voice echoes in your head as if from a great distance. 
 (Look at your Surroundings). 
  Use "ls" to look at what’s in a certain location. Either your current location or (rarely) you may have look 
 into a location to see what's in it.  
- Command Input: 
+ Command Input. 
 ls          (for current location) 
 -OR- 
 ls LOCATION     (for locations you that you cannot "cd" into)
