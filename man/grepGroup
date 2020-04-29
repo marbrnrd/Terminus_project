@@ -1,6 +1,5 @@
 The old man's voice echoes in your head as if from a great distance.
-(grep) 
-Use "grep" to command your minion to help search through text for you.
-Command Input. 
-grep WORDTOSEARCH PLACETOSEARCH 
+Use "grep" to command your minion to help search 
+through text for you. 
+Command Input.grep WORDTOSEARCH PLACETOSEARCH 
 Rememberrrrrr...
