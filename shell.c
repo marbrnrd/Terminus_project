@@ -156,7 +156,7 @@ int execute(int argc, char *argv[])
   return 0;
 }
 //////////////////////////////////////////////
-int main ()
+int main_shell ()
 {
    char * Prompt = "myShell0> ";
    int eof= 0;
