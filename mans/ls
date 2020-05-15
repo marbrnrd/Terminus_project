@@ -1,0 +1,5 @@
+Use "ls" to look at what's in a certain location.
+Command Input: ls (for current location) 
+-OR-
+ls LOCATION (for locations that you cannot "cd" into)
+Remember.
