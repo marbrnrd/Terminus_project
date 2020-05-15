@@ -68,7 +68,7 @@ int read_args(int* argcp, char* args[], int max, int* eofp)
       if ((args[i]= strtok(cmdp, " \t\n")) == (char*)NULL) break;
       cmdp= NULL;
    }
-   if (i >= max) {
+   if (i >= max){
       fprintf(stderr,"Too many arguments -- removed command\n");
       return 0;
    }
@@ -121,7 +121,7 @@ int execute(int argc, char *argv[])
   int status;
   char buf[256]; 
 
-  if(strcmp(argv[0],"cd")==0){           //cd command case
+  if(strcmp(argv[0],"cd") == 0 ){           //cd command case
      char* dir = getcwd(buf, sizeof(buf));
      char* first = "You are at the first room\n";
   
@@ -152,7 +152,7 @@ int execute(int argc, char *argv[])
   return 0;
 }
 //////////////////////////////////////////////
-int main()
+int main_shell ()
 {
    char * Prompt = "myShell0> ";
    int eof= 0;
@@ -199,11 +199,11 @@ int main()
    chdir("Home");
     
    while (1) {
-      write(0,Prompt, strlen(Prompt));
+      write(1,Prompt, strlen(Prompt));
 
       if (read_args(&argc, args, MAXARGS, &eof) && argc > 0) {
          execute(argc, args);
       }
-      if (eof) exit(0);
+      if(eof) exit(0);
    }
 }
