@@ -3,17 +3,21 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 
 #define BUFSIZE 2000
-#define path "/users/alumnos/acaf/acaf0201/Terminus_project/mans/"
 
 int main(int argc, char *argv[]){
-
+if(argc==2){
 int fd;
 int n;
 char buffer[BUFSIZE];
-char a[100]=path;
+char *a;
 
+a=getenv("ROOT");
+strcat(a, "/mans/");
 strcat(a, argv[1]);
 
 fd=open(a, O_RDONLY);
@@ -25,5 +29,8 @@ while((n=read(fd, buffer, BUFSIZE))>0)
 else
 {
 printf("No existing command. Try with another one.\n");
+}
+}else{
+printf("Error with the man command.Insert valid number of parameters.\n");
 }
 }
