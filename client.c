@@ -4,35 +4,57 @@
 #include <unistd.h>
 #include <string.h> 
 #include <sys/socket.h> 
-#define MAX 4096 
+#include <arpa/inet.h>
+
+#define MAX 9096
 #define PORT 2048
 #define SA struct sockaddr 
+
+void check(int err)
+{
+    if(err < 0)
+    {
+       perror("client: ");
+       exit(1);
+    }
+}
+
 
 void func(int sockfd) 
 { 
     char buff[MAX]; 
-    char *str;
-    int n;
     ssize_t byteread;
-	
-   
-	
-    	while((byteread = recv(sockfd,buff,sizeof(buff),0)) > 0){
-		write(1,buff,byteread);
-	}
-		
-	byteread=read(0,buff,sizeof(buff));
-	send(sockfd,buff,byteread,0);
-   
+
+    sleep(2);
+
+    check(byteread = recv(sockfd,buff,sizeof(buff),0));
+    check(write(1,buff,byteread));
+
+
+    while(1)
+    {
+
+	bzero(buff, MAX);
+        check(byteread=read(0,buff,sizeof(buff)));
+        check(send(sockfd, buff, byteread, 0));
+
+        sleep(1);
+
+        bzero(buff, MAX);
+        check(byteread = recv(sockfd,buff,sizeof(buff),0));
+        check(write(1,buff,byteread));
+        
+    }
+  
 } 
 
-int main() 
+int main(int argc, char* argv[]) 
 { 
-    int sockfd, connfd; 
-    struct sockaddr_in servaddr, cli; 
+    int sockfd;
+    struct sockaddr_in servaddr; 
   
     // socket create and varification 
-    sockfd = socket(AF_INET, SOCK_STREAM, 6); 
+    sockfd = socket(AF_INET, SOCK_STREAM,0); 
     if (sockfd == -1) { 
         printf("socket creation failed...\n"); 
         exit(0); 
@@ -60,4 +82,5 @@ int main()
   
     // close the socket 
     close(sockfd); 
+    return 0;
 } 
