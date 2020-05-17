@@ -1,1 +1,0 @@
-You must read the Certificate with the sudo password.

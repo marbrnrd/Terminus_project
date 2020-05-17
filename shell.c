@@ -161,14 +161,11 @@ int parse_redirection(int cmdnum, char* cmd[],char* files[] )
     strcpy(in,cmd[0]);
     cmd[0] = strsep(&in, "<");
 
-    if(out != NULL) 
+    if(in != NULL) 
        in = strsep(&in, "\n");
 
     if(in != NULL)
        files[0] = strtok(in, " ");
-
-    free(out);
-    free(in);
 
     return 0;
 }
@@ -316,7 +313,6 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
        //setup output
        if (i+1 == cmdnum){         // Last simple command   
           if(rfiles[1] != NULL){
-             printf("%s\n",rfiles[1]);
              check((fdout=open(rfiles[1],O_WRONLY | O_TRUNC)));
           }
           else {

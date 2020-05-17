@@ -1,3 +1,0 @@
-He looks mad, and really, really ugly. But he wants to tell you something. Between his garbled grunts, you manage to understand the following: You can cast 
-spells on items that you don't currently see. For example, if you want to copy an item from this room to the OminousLookingPath from which you came, you can 
-cp [ITEM_TO_COPY] ../[NEW_ITEM_NAME]. You can do this for most spells and most rooms. Use this knowledge wisely. Remember.... you can't undo an 'rm' spell.
