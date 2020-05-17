@@ -36,7 +36,8 @@ static int execute(char* line);
 	Input:  int returned by the function to check correct completion of.
         Output: Error information defined by errno is printed if input value < 0.
 ************************************************************************************************************/
-void check(int err){
+void check(int err)
+{
    if(err < 0){
       perror("Error");
    }
@@ -91,8 +92,8 @@ int read_line(char line[], int* eofp)
        Output:  arg count value is stored on *argcp and argument strings are stored in the args array.
                 (note: cmpd is modified by strtok)
 ************************************************************************************************************/
-int parse_command(char* cmdp,int* argcp, char* args[], int max){
-
+int parse_command(char* cmdp,int* argcp, char* args[], int max)
+{
    int i;
 
    // Analyzing the line
@@ -161,7 +162,7 @@ int parse_redirection(int cmdnum, char* cmd[],char* files[] )
     strcpy(in,cmd[0]);
     cmd[0] = strsep(&in, "<");
 
-    if(out != NULL) 
+    if(in != NULL) 
        in = strsep(&in, "\n");
 
     if(in != NULL)
@@ -183,7 +184,8 @@ void removeDirectoryTree(){
        and the PATH environment variable, removes the directory tree used in the game and finally terminates the
        process.
 ****************************************************************************************************************/
-void sigint_handler(int sig){
+void sigint_handler(int sig)
+{
     printf("\nDeleting game world :(\n");
     sigaction(SIGINT, &old_action, NULL);
     setenv("PATH", originalpath, 1);
@@ -191,12 +193,22 @@ void sigint_handler(int sig){
     kill(0, SIGINT);  
 }
 
-/* 8 - Function used to print the descriptions of the game locations when moving with "cd".
+/* 8 - Handler function for the SIGINT signal. Will not terminate the process SIGINT signal is received(effective-
+       ly ignoring it). Used to disable SIGINT for the shell process when a command is executing, so that only the 
+       children process executing the command is killed when presing crtl+C, and not also the shell process. 
+******************************************************************************************************************/
+void sigint_ignore(int sig)
+{
+   write(1,"\n",1);
+}
+
+/* 9 - Function used to print the descriptions of the game locations when moving with "cd".
 
        Input:  file name of the location(char*).
        Output: Contents of file are printed to standard output.
 ****************************************************************************************************************/
-void location_desc(char* location){
+void location_desc(char* location)
+{
   char buf[256];
   char locpath[256];
   char* prev;
@@ -217,7 +229,7 @@ void location_desc(char* location){
   execute(strcat(desc,locpath));
 }
 
-/* 9 - Function to check if a command corresponds to one of the "built in" commands. If so the command is executed
+/* 10 - Function to check if a command corresponds to one of the "built in" commands. If so the command is executed
        by calling to the appropiate external function.
 
        Input:  pointer array storing user inputed commands(char**).
@@ -230,7 +242,7 @@ int builtin_handler(char** cmds)
    char buf[256];
    char* argv[MAXARGS]; 
    char* cmd = malloc(strlen(cmds[0]));
-   
+
    strcpy(cmd,cmds[0]);
    if(parse_command(cmd, &argc, argv, MAXARGS) < 0){
       perror("Error: ");
@@ -251,25 +263,33 @@ int builtin_handler(char** cmds)
    return 0;     
 }
 
-/* 10 -
-
+/* 11 - Executes the user inputed line. The line undergoes a few steps of parsing to determine the structure of the 
+        command (wheter it is a built in command(such as cd),single regular command,piped,redirection..) and execute 
+        the appropiate steps. 
 ********************************************************************************************************************/
 int execute(char* line)
 {
    int cmdnum;
-   char* pipedcmd[MAXPIPE];
+   char* cmds[MAXPIPE];
    char* rfiles[2]; 
 
-   if((cmdnum =  parse_pipe(line, pipedcmd)) > 0){
-      parse_redirection(cmdnum, pipedcmd,rfiles); 
-      execute_piped(cmdnum,pipedcmd,rfiles); 
+   if(line[0] == '\n')
+      return 0;
+
+   if((cmdnum =  parse_pipe(line, cmds)) > 0){
+       //check built in command case 
+       if(builtin_handler(cmds))      
+          return 0;
+
+      parse_redirection(cmdnum, cmds,rfiles); 
+      execute_piped(cmdnum,cmds,rfiles); 
    }     
    check(cmdnum);
 
    return 0;
 }
 
-/* 10 - Executes the user inputed commands, with piping and redirection. Steps:
+/* 12 - Executes the user inputed commands, with piping and redirection. Steps:
           -If input file is provided, it is opened.
           -It is checked if the input command is a builtin. If so execute and stop(return 0).
           -Piped commands are executed. First command stdin is set to regular stdin or redirected input file
@@ -300,8 +320,8 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
       fdin=dup(tmpin);             // Use default input 
    }
 
-   //check built in command case
-   if(builtin_handler(cmds)){return 0;}
+   //disable SIGINT signal for the parent so it doesn't close when pressing ctrl+C along with the children
+   signal(SIGINT, sigint_ignore); 
 
    int ret;
    int fdout;
@@ -334,15 +354,20 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
        // Create child process
        check(ret=fork());
        if(ret==0) {
+
 	  int argc; 
           char* argv[MAXARGS];
+
+          signal(SIGINT, SIG_DFL);
 
           if(parse_command(cmds[i], &argc, argv, MAXARGS) > 0){
 	     execvp(*argv, argv);
 	  }
+          
           char msg[25] = "Error: Command not found\n";
           write(2,msg,sizeof(msg));
-          exit(1);
+          exit(1); 
+         
        }
    } // for
 
@@ -354,11 +379,14 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
 
    // Wait for last command
    check(waitpid(ret, &status, 0));
- 
+
+   //resore the SIGINT
+   signal(SIGINT, sigint_handler); 
+
    return 0;
 }
 
-/* 11 - Main function of the shell. Before starting the command reading loop some configurations are 
+/* 13 - Main function of the shell. Before starting the command reading loop some configurations are 
         done to set up the game. SIGINT signal handler is swapped by a custom one to delete the directory
         tree created for the game upon closing the program. ROOT, PATH and HOME environment variables are
         changed to simulate the game being run on its own mini computer(changing the PATH also helps with
@@ -413,11 +441,7 @@ int main_shell()
       write(1,Prompt, strlen(Prompt));
 
       if (read_line(line, &eof) > 0) {
-       
-        if((cmdnum =  parse_pipe(line, pipedcmd)) > 0){
-           parse_redirection(cmdnum, pipedcmd,rfiles); 
-	   execute_piped(cmdnum,pipedcmd,rfiles);
-	}
+         execute(line);       
       }
       if (eof) exit(0);
    }

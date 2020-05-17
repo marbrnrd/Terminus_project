@@ -20,10 +20,8 @@ int cd(int argc, char **argv)
         if (!strcmp(argv[1], "~"))
             cd_home();
         else
-            //printf("chdir(%s) = %d\n", argv[1], chdir(argv[1]));
             if(chdir(argv[1]) == -1){
-              printf("There is no room called %s\n", argv[1]);
-              fflush(stdout);
+              fprintf(stderr, "There is no room called %s\n", argv[1]);
               return EXIT_FAILURE;
             }
         break;

@@ -16,7 +16,7 @@ void check(int err)
 {
    if(err < 0)
    {
-      perror("grep:");
+      perror("grep: the following error ocurred");
       exit(1);
    }
 }
