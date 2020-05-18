@@ -6,7 +6,7 @@
 #include <err.h>
 #include <signal.h>
 
-#include "cd/cd.h"
+#include "commands/cd.h"
 #include "shell.h"
 
 int main(int argc, char** argv)

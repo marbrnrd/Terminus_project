@@ -9,7 +9,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "cd/cd.h"
+#include "commands/cd.h"
 
 #define error(a) {perror(a); exit(1);};
 #define MAXLINE 200
