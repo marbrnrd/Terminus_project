@@ -2,6 +2,8 @@
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <string.h> 
 #include <sys/socket.h> 
 #include <arpa/inet.h>
@@ -25,7 +27,21 @@ void check(int err)
     }
 }
 
-/* 2 - This function handles the interactions of the client with the server. First the client receives the
+/* 2 - Checks if a given string is a number. Used to check correct port inputs.
+************************************************************************************************************/
+int isNumeric(const char *str) 
+{
+    while(*str != '\0')
+    {
+        if(*str < '0' || *str > '9')
+            return 1;
+        str++;
+    }
+    return 0;
+}
+
+
+/* 3 - This function handles the interactions of the client with the server. First the client receives the
        initial data from the server(the game intro text) and then enters the following loop: issue command
        to the server, wait until server responds and receive message. Repeat.
 ************************************************************************************************************/
@@ -57,13 +73,14 @@ void func(int sockfd)
   
 } 
 
-/* 3 - Main function. Establishes the connection between client/server.
+/* 4 - Main function. Establishes the connection between client/server.
 
        Input: The ip address of the server to connect to (argv[1]) and the port number (argv[2])
 ********************************************************************************************************/
 int main(int argc, char* argv[]) 
 { 
     int sockfd;
+    long arg;
     struct sockaddr_in servaddr; 
 
     if(argc != 3)
@@ -71,6 +88,10 @@ int main(int argc, char* argv[])
             "Arg 1 = destination IP address (e.g. 127.0.0.1)\n"
             "Arg 2 = Port number (e.g. 2048)");  
 
+
+    if (isNumeric(argv[2]) == 1) {
+       errx(EXIT_FAILURE, "Usage:\n"  "Invalid port number\n"); 
+    }
   
     // socket create and varification 
     sockfd = socket(AF_INET, SOCK_STREAM,0); 
@@ -83,9 +104,9 @@ int main(int argc, char* argv[])
     bzero(&servaddr, sizeof(servaddr)); 
   
     // assign IP, PORT 
-    servaddr.sin_family = AF_INET; 
+    servaddr.sin_family = AF_INET;   
     servaddr.sin_addr.s_addr = inet_addr(argv[1]); 
-    servaddr.sin_port = htons(atoi(argv[2])); 
+    servaddr.sin_port = htons(atoi(argv[2]));
 
     // connect the client socket to server socket 
     if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) { 
@@ -95,7 +116,6 @@ int main(int argc, char* argv[])
     else
         printf("connected to the server..\n"); 
  
-
     func(sockfd);
 
   
