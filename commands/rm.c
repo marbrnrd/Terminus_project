@@ -10,7 +10,7 @@ int main(int argc,char **argv) {
     int exist;
     exist=unlink(argv[1]); 
     if(exist==0){ 
-      printf("File deleted");
+      printf("File deleted\n");
     }
     else{ 
       perror("unlink");

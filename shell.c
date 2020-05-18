@@ -29,21 +29,7 @@ static int execute_piped(int cmdnum,char** cmds,char* rfiles[]);
 static int execute(char* line);
 
 
-/* 1 -  Function to check if there are execution errors, if the int returned by the function to check
-        is negative the error is reported.
-
-	Input:  int returned by the function to check correct completion of.
-        Output: Error information defined by errno is printed if input value < 0.
-************************************************************************************************************/
-void check(int err)
-{
-   if(err < 0){
-      perror("Error");
-   }
-}
-
-
-/* 2 - Checks if a line's length not greater than the maximum size allowed(200). Characters are read one at
+/* 1 - Checks if a line's length not greater than the maximum size allowed(200). Characters are read one at
        a time until a newline character is found or the max size is reached. Errors can be caused due to rea-
        ding failure(read()) or too long lines.
 
@@ -84,7 +70,7 @@ int read_line(char line[], int* eofp)
 }
 
 
-/* 3 - Function used to parse a given command(char*). The command is analized and split on arguments. It is
+/* 2 - Function used to parse a given command(char*). The command is analized and split on arguments. It is
        checked that the argument count is not greater than the maximum allowed 20. The value of the arg count
        is stored in the location pointed by argcp(int*).
  
@@ -100,6 +86,7 @@ int parse_command(char* cmdp,int* argcp, char* args[], int max)
    // Analyzing the line
    for (i=0; i<max; i++) {  /* to show every argument */
       if ((args[i]= strtok(cmdp, " \t\n")) == (char*)NULL) break;
+
       cmdp= NULL;
    }
    if (i >= max) {
@@ -112,7 +99,7 @@ int parse_command(char* cmdp,int* argcp, char* args[], int max)
 }
 
 
-/* 4 - Function to parse a given line, storing in the process each detected command (separated by " | ") in an
+/* 3 - Function to parse a given line, storing in the process each detected command (separated by " | ") in an
        array. It is checked that the command count is not greater than the maximum allowed(20).
 
        Input:   line to parse(char[]) and pointer array to store the command strings on(char** pipedcmd).
@@ -133,7 +120,7 @@ int parse_pipe(char line[], char** pipedcmd)
 } 
 
 
-/* 5 - Function to parse the commands that may have redirections ('<','>'). The first and last of the piped co-
+/* 4 - Function to parse the commands that may have redirections ('<','>'). The first and last of the piped co-
        mmands are analized (if not piped the only input command is analized). The command and input/output file
        are split and stored separate arrays.
 
@@ -142,40 +129,42 @@ int parse_pipe(char line[], char** pipedcmd)
        Output:  file array is filled(NULL value stored if no file) and commmand string is updated for the parsed
                 commands.("pwd > file" --> cmd[i] = "pwd", files[1] = "file")   
 *****************************************************************************************************************/
-int parse_redirection(int cmdnum, char* cmd[],char* files[] )
+int parse_redirection(int cmdnum, char* cmd[],char* files[] ,char* mem[])
 {
-    files[0] = NULL;
-    files[1] = NULL; 
+   files[0] = NULL;
+   files[1] = NULL;
 
-    //look for an output file
-    char* out = malloc(strlen(cmd[cmdnum-1])); 
+   //look for an output file
+   mem[1] = malloc(strlen(cmd[cmdnum-1]));   
+   char* out = mem[1];
 
-    strcpy(out,cmd[cmdnum-1]);
-    cmd[cmdnum-1] = strsep(&out, ">"); 
-    
-    if(out != NULL) 
-       out = strsep(&out, "\n");
+   strcpy(out,cmd[cmdnum-1]);
+   cmd[cmdnum-1] = strsep(&out, ">"); 
 
-    if(out != NULL)
-       files[1] = strtok(out, " ");
+   if(out != NULL) 
+      out = strsep(&out, "\n");
 
-    //look for an input file
-    char* in = malloc(strlen(cmd[0]));
+   if(out != NULL)
+      files[1] = strtok(out, " "); 
 
-    strcpy(in,cmd[0]);
-    cmd[0] = strsep(&in, "<");
+   //look for an input file  
+   mem[0] = malloc(strlen(cmd[0]));   
+   char* in = mem[0];
 
-    if(in != NULL) 
-       in = strsep(&in, "\n");
+   strcpy(in,cmd[0]);
+   cmd[0] = strsep(&in, "<"); 
 
-    if(in != NULL)
-       files[0] = strtok(in, " ");
+   if(in != NULL) 
+      in = strsep(&in, "\n"); 
 
-    return 0;
+   if(in != NULL)  
+      files[0] = strtok(in, " "); 
+
+   return 0;                 
 }
 
 
-/* 6 - Deletes the entire directory tree used in the game(to be called when exiting the game)
+/* 5 - Deletes the entire directory tree used in the game(to be called when exiting the game)
 ****************************************************************************************************************/
 void removeDirectoryTree(){
    char rmcommand[256];
@@ -185,9 +174,9 @@ void removeDirectoryTree(){
 }
 
 
-/* 7 - Handler function for the SIGINT signal. Restores the original values of: the assigned handler for SIGINT, 
+/* 6 - Handler function for the SIGINT signal. Restores the original values of the assigned handler for SIGINT
        and the PATH environment variable, removes the directory tree used in the game and finally terminates the
-       process.
+       process(itself).
 ****************************************************************************************************************/
 void sigint_handler(int sig)
 {
@@ -199,7 +188,7 @@ void sigint_handler(int sig)
 }
 
 
-/* 8 - Handler function for the SIGINT signal. Will not terminate the process SIGINT signal is received(effective-
+/* 7 - Handler function for the SIGINT signal. Will not terminate the process SIGINT signal is received(effective-
        ly ignoring it). Used to disable SIGINT for the shell process when a command is executing, so that only the 
        children process executing the command is killed when presing crtl+C, and not also the shell process. 
 ******************************************************************************************************************/
@@ -209,35 +198,35 @@ void sigint_ignore(int sig)
 }
 
 
-/* 9 - Function used to print the descriptions of the game locations when moving with "cd".
+/* 8 - Function used to print the descriptions of the game locations when moving with "cd".
 
        Input:  file name of the location(char*).
        Output: Contents of file are printed to standard output.
 ****************************************************************************************************************/
 void location_desc(char* location)
 {
-  char buf[256];
-  char locpath[256];
-  char* prev;
+   char buf[256];
+   char locpath[256];
+   char* prev;
 
-  char* dir = getcwd(buf, sizeof(buf));
-  char* curr = strtok(dir,"/");
-  while(curr != (char*)NULL){
-     prev = curr;
-     curr = strtok(NULL,"/");
-  }
+   char* dir = getcwd(buf, sizeof(buf));
+   char* curr = strtok(dir,"/");
+   while(curr != (char*)NULL){
+      prev = curr;
+      curr = strtok(NULL,"/");
+   }
  
-  //form the " .../Terminus_project/files/locations/location.txt" string and execute cat
-  strcat(prev,".txt");  
-  strcpy(locpath,locations);
-  strcat(locpath,prev);
+   //form the " .../Terminus_project/files/locations/location.txt" string and execute cat
+   strcat(prev,".txt");  
+   strcpy(locpath,locations);
+   strcat(locpath,prev);
 
-  char desc[256] = "cat ";
-  execute(strcat(desc,locpath));
+   char desc[256] = "cat ";
+   execute(strcat(desc,locpath));
 }
 
 
-/* 10 - Function to check if a command corresponds to one of the "built in" commands. If so the command is executed
+/* 9 - Function to check if a command corresponds to one of the "built in" commands. If so the command is executed
        by calling to the appropiate external function.
 
        Input:  pointer array storing user inputed commands(char**).
@@ -253,7 +242,8 @@ int builtin_handler(char** cmds)
 
    strcpy(cmd,cmds[0]);
    if(parse_command(cmd, &argc, argv, MAXARGS) < 0){
-      perror("Error: ");
+      perror("Error while parsing command: ");
+      return -1;
    }
 
    if(strcmp(argv[0],"cd")==0){           //cd command case
@@ -268,10 +258,12 @@ int builtin_handler(char** cmds)
       return 1;
    }           
 
+   free(cmd);
+
    return 0;     
 }
 
-/* 11 - Executes the user inputed line. The line undergoes a few steps of parsing to determine the structure of the 
+/* 10 - Executes the user inputed line. The line undergoes a few steps of parsing to determine the structure of the 
         command (wheter it is a built in command(such as cd),single regular command,piped,redirection..) and execute 
         the appropiate steps. 
 ********************************************************************************************************************/
@@ -280,6 +272,7 @@ int execute(char* line)
    int cmdnum;
    char* cmds[MAXPIPE];
    char* rfiles[2]; 
+   char* mem[2];
 
    if(line[0] == '\n')
       return 0;
@@ -289,15 +282,18 @@ int execute(char* line)
        if(builtin_handler(cmds))      
           return 0;
 
-      parse_redirection(cmdnum, cmds,rfiles); 
+      parse_redirection(cmdnum, cmds,rfiles,mem); 
       execute_piped(cmdnum,cmds,rfiles); 
-   }     
-   check(cmdnum);
+   }
+   
+     
+   free(mem[0]);
+   free(mem[1]);
 
    return 0;
 }
 
-/* 12 - Executes the user inputed commands, with piping and redirection. Steps:
+/* 11 - Executes the user inputed commands, with piping and redirection. Steps:
           -If input file is provided, it is opened.
           -It is checked if the input command is a builtin. If so execute and stop(return 0).
           -Piped commands are executed. First command stdin is set to regular stdin or redirected input file
@@ -321,8 +317,12 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
    //set the initial input
    int fdin;
    
-   if (rfiles[0] != NULL) {
-      check(fdin = open(rfiles[0],O_RDONLY));
+   if (rfiles[0] != NULL) 
+   {
+      if((fdin = open(rfiles[0],O_RDONLY)) < 0){     //open input file
+         perror("Error while opening input file");
+         return -1;
+      }
    }
    else {  
       fdin=dup(tmpin);             // Use default input 
@@ -339,9 +339,12 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
        close(fdin);
 
        //setup output
-       if (i+1 == cmdnum){         // Last simple command   
+       if (i+1 == cmdnum) {         // Last simple command   
           if(rfiles[1] != NULL){
-             check((fdout=open(rfiles[1],O_WRONLY | O_TRUNC)));
+             if((fdout=open(rfiles[1],O_WRONLY | O_CREAT | O_TRUNC , 0666)) < 0) {  //open output file
+                perror("Error while opening output file");
+                return -1;
+             }
           }
           else {
              fdout=dup(tmpout);   // Use default output  
@@ -350,7 +353,10 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
        }
        else {                     // Not last simple command create pipe  
           int fdpipe[2];
-          check(pipe(fdpipe));
+          if((pipe(fdpipe)) < 0) {
+             perror("Error while creating pipe");
+             return -1;
+          }
           fdout=fdpipe[1];
           fdin=fdpipe[0];
        }// if/else
@@ -360,7 +366,7 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
        close(fdout);
 
        // Create child process
-       check(ret=fork());
+       ret=fork();
        if(ret==0) {
 
 	  int argc; 
@@ -371,12 +377,13 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
           if(parse_command(cmds[i], &argc, argv, MAXARGS) > 0){
 	     execvp(*argv, argv);
 	  }
-          
-          char msg[25] = "Error: Command not found\n";
-          write(2,msg,sizeof(msg));
-          exit(1); 
+          perror("Error");
+          exit(-1); 
          
        }
+       if(ret < 0)
+          perror("Error fork()");
+
    } // for
 
    //restore in/out defaults
@@ -385,8 +392,11 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
    close(tmpin);
    close(tmpout);
 
-   // Wait for last command
-   check(waitpid(ret, &status, 0));
+   // Wait for last children
+   if(waitpid(ret, &status, 0) < 0){
+      perror("Error: wait");
+      return -1;
+   }
 
    //resore the SIGINT
    signal(SIGINT, sigint_handler); 
@@ -395,7 +405,7 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
 }
 
 
-/* 13 - Main function of the shell. Before starting the command reading loop some configurations are 
+/* 12 - Main function of the shell. Before starting the command reading loop some configurations are 
         done to set up the game. SIGINT signal handler is swapped by a custom one to delete the directory
         tree created for the game upon closing the program. ROOT, PATH and HOME environment variables are
         changed to simulate the game being run on its own mini computer(changing the PATH also helps with

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 /* 1 - Function to check if there are execution errors, if the int returned by the function to check
-       is negative the error is reported and execution of grep stops.
+       is negative the error is reported and execution of cat stops.
 
        Input:  int returned by the function to check correct completion of.
        Output: Error information defined by errno is printed and program exited if input value < 0.

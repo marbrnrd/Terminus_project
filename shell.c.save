@@ -86,7 +86,6 @@ int parse_command(char* cmdp,int* argcp, char* args[], int max)
    // Analyzing the line
    for (i=0; i<max; i++) {  /* to show every argument */
       if ((args[i]= strtok(cmdp, " \t\n")) == (char*)NULL) break;
-
       cmdp= NULL;
    }
    if (i >= max) {
@@ -129,38 +128,52 @@ int parse_pipe(char line[], char** pipedcmd)
        Output:  file array is filled(NULL value stored if no file) and commmand string is updated for the parsed
                 commands.("pwd > file" --> cmd[i] = "pwd", files[1] = "file")   
 *****************************************************************************************************************/
-int parse_redirection(int cmdnum, char* cmd[],char* files[] ,char* mem[])
+int parse_redirection(int cmdnum, char* cmd[],char* files[] )
 {
-   files[0] = NULL;
-   files[1] = NULL;
+    files[0] = NULL;
+    files[1] = NULL; 
+    char* aux2;
 
-   //look for an output file
-   mem[1] = malloc(strlen(cmd[cmdnum-1]));   
-   char* out = mem[1];
+    //look for an output file
+    char* out = malloc(strlen(cmd[cmdnum-1]));
+    char* pout = out;
 
-   strcpy(out,cmd[cmdnum-1]);
-   cmd[cmdnum-1] = strsep(&out, ">"); 
+    //extract the command part (ex. cat file > a --> cat file)
+    strcpy(pout,cmd[cmdnum-1]); 
+    cmd[cmdnum-1] = strsep(&pout, ">");  
 
-   if(out != NULL) 
-      out = strsep(&out, "\n");
+/*
+    //extract the file part
+    if(pout != NULL)
+       pout = strsep(&pout, "\n");
 
-   if(out != NULL)
-      files[1] = strtok(out, " "); 
+    if(out != NULL)
+       files[1] = strtok(pout, " ");
 
-   //look for an input file  
-   mem[0] = malloc(strlen(cmd[0]));   
-   char* in = mem[0];
 
-   strcpy(in,cmd[0]);
-   cmd[0] = strsep(&in, "<"); 
+    //look for an input file
+    char* in =  malloc(strlen(cmd[0])); 
+    char* pin = in;
 
-   if(in != NULL) 
-      in = strsep(&in, "\n"); 
+    //extract the command part
+    strcpy(pin,cmd[0]);
+    aux2 = strsep(&pin, "<");
+    strcpy(cmd[0],aux2); 
 
-   if(in != NULL)  
-      files[0] = strtok(in, " "); 
+    //extract the file part
+    if(pin != NULL)
+       pin = strsep(&pin, "\n");
 
-   return 0;                 
+    if(pin != NULL)
+       files[0] = strtok(pin, " ");
+
+
+//    free(in);
+
+
+//    free(out);
+*/
+    return 0;
 }
 
 
@@ -272,7 +285,6 @@ int execute(char* line)
    int cmdnum;
    char* cmds[MAXPIPE];
    char* rfiles[2]; 
-   char* mem[2];
 
    if(line[0] == '\n')
       return 0;
@@ -282,13 +294,9 @@ int execute(char* line)
        if(builtin_handler(cmds))      
           return 0;
 
-      parse_redirection(cmdnum, cmds,rfiles,mem); 
+      parse_redirection(cmdnum, cmds,rfiles); 
       execute_piped(cmdnum,cmds,rfiles); 
-   }
-   
-     
-   free(mem[0]);
-   free(mem[1]);
+   }     
 
    return 0;
 }
@@ -412,7 +420,7 @@ int execute_piped(int cmdnum,char** cmds,char* rfiles[])
         making sure the commands executed are the ones programmed by us instead of the bash commands).
         Finally the games introductory message is printed, the prompt is shown and the normal loop starts.
 ********************************************************************************************************/
-int main_shell()
+int main()
 {
    char * Prompt = "myShell0> ";
    int eof= 0;
